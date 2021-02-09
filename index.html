@@ -1,0 +1,104 @@
+<head>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+</head>
+<body>
+    <div style="text-align:center;">
+        <h1>CORS test site with Jquery environment</h1>
+    </div>
+    <div style="display: flex;justify-content:center;">
+        <div>
+            <div style="margin-bottom: 10px;">
+                <label for="hostUrl">Host URL:</label>
+                <input id="hostUrl" style="width: 500px;"/>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="httpMethod">Choose a HTTP method:</label>
+                <select name="httpMethod" id="httpMethod">
+                    <option value="GET">GET</option>
+                    <option value="POST">POST</option>
+                    <option value="PUT">PUT</option>
+                    <option value="PATCH">PATCH</option>
+                    <option value="DELETE">DELETE</option>
+                </select>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="authToken">Bearer Token:</label>
+                <textarea id="authToken" name="authToken" rows="4" cols="50"></textarea>
+            </div>
+            <div style="margin-bottom: 10px;">
+                <label for="bodyJson">Body Data JSON String:</label>
+                <textarea id="bodyJson" name="bodyJson" rows="4" cols="50"></textarea>
+            </div>
+            <button type="button" style="float: right;margin-top: 30px;" onclick="onClickTest()">TEST</button>
+        </div>
+    </div>
+    <div style="text-align:center;">
+        <h1>Result: <span id="resultStatus"></span></h1>
+        <div id="resultText"></div>
+    </div>
+    <script>
+        function onClickTest() {
+            var headerObj
+            var bodyObj
+            var isJsonStr = true
+
+            if ($('#authToken').val() === '') {
+                headerObj = {}
+            } else {
+                headerObj = {
+                    Authorization: "Bearer " + $('#authToken').val()
+                }
+            }
+
+            if ($('#bodyJson').val() === '') {
+                bodyObj = {}
+            } else {
+                try {
+                    bodyObj = JSON.parse($('#bodyJson').val())
+                } catch (error) {
+                    isJsonStr = false
+                }
+            }
+
+            if (($('#hostUrl').val() !== '') && isJsonStr) {
+                var jqxhr = $.ajax({
+                    url: $('#hostUrl').val(),
+                    xhrFields: {
+                        withCredentials: true
+                    },
+                    contentType: "application/json",
+                    headers: headerObj,
+                    method: $('#httpMethod').val(),
+                    data: JSON.stringify(bodyObj)
+                })
+                .done(function(result) {
+                    $('#resultStatus').text('Success!')
+                    $('#resultText').text(JSON.stringify(result))
+                    console.log('success')
+                    console.log(result)
+                    console.log('success')
+                })
+                .fail(function(result) {
+                    $('#resultStatus').text('Fail!')
+                    $('#resultText').html(
+                        result.status + ' ' + result.statusText +
+                        '<br/>' + 
+                        result.responseText
+                    )
+                    console.log('fail')
+                    console.log(result)
+                    console.log('fail')
+                });
+            } else if (!isJsonStr) {
+                $('#resultStatus').text('ERROR!')
+                $('#resultText').html(
+                    'Body Data JSON String is invalid!' + 
+                    '<br/>' + 
+                    'You can reference this <a href="https://codebeautify.org/jsonviewer" target="_blank">site</a>'
+                )
+            } else {
+                $('#resultStatus').text('NO URL!')
+            }
+        }
+    </script>
+</body>
